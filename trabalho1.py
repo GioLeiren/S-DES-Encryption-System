@@ -77,7 +77,6 @@ def sdes_encriptar(bloco, k1, k2):
     # Permutação Inicial (IP)
     ip_ordem = [2, 6, 3, 1, 4, 8, 5, 7]
     bloco_permutado = permutacao(bloco, ip_ordem)
-    bloco_permutado = [1, 0, 1, 1, 1, 1, 0, 1]
     
     # Divisão em L e R
     l, r = bloco_permutado[:4], bloco_permutado[4:]
@@ -98,11 +97,37 @@ def sdes_encriptar(bloco, k1, k2):
     ip_inversa_ordem = [4, 1, 3, 5, 7, 2, 8, 6]
     return permutacao(bloco_final, ip_inversa_ordem)
 
+def sdes_decriptar(bloco, k1, k2):
+    """Realiza a decifragem usando S-DES."""
+    # Permutação Inicial (IP)
+    ip_ordem = [2, 6, 3, 1, 4, 8, 5, 7]
+    bloco_permutado = permutacao(bloco, ip_ordem)
+    
+    # Divisão em L e R
+    l, r = bloco_permutado[:4], bloco_permutado[4:]
+    
+    # Primeira rodada de Feistel (com K2)
+    f1 = funcao_feistel(r, k2)
+    l = [l[i] ^ f1[i] for i in range(4)]  # Resultado de F1(L,R)
+
+    l, r = r, l
+    
+    # Segunda rodada de Feistel (com K1)
+    f2 = funcao_feistel(r, k1)
+    l = [l[i] ^ f2[i] for i in range(4)]
+    
+    # Combina L e R sem troca e aplica Permutação Final (IP⁻¹)
+    bloco_final = l + r
+    ip_inversa_ordem = [4, 1, 3, 5, 7, 2, 8, 6]
+    return permutacao(bloco_final, ip_inversa_ordem)
+
 # Teste
 chave_10_bits = [1, 0, 1, 0, 0, 0, 0, 0, 1, 0]  # Chave fornecida
 bloco = [1, 1, 0, 1, 0, 1, 1, 1]  # Bloco fornecido
 k1, k2 = gerar_subchaves(chave_10_bits)
 cifrado = sdes_encriptar(bloco, k1, k2)
+decifrado = sdes_decriptar(cifrado, k1, k2)
 print("K1:", k1)
 print("K2:", k2)
 print("Bloco cifrado:", cifrado)
+print("Bloco decifrado:", decifrado)
